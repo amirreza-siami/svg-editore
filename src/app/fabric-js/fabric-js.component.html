@@ -1,0 +1,325 @@
+<div class="grid grid-cols-12 gap-4 overflow-hidden">
+
+  <div class="col-span-4 mt-4">
+
+    <div class="max-w-sm mx-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-4">
+      <input type="file" (change)="onFileSelected($event)" accept=".svg"/>
+    </div>
+
+    <ng-container *ngIf="canvas && canvas.getObjects()?.length && !canvas.backgroundImage">
+
+      <div class="max-w-sm mx-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-4 mt-4">
+        <button (click)="showPreviewModal = true"
+                class="bg-light border text-black px-4 py-2 rounded-md w-full">
+          Preview
+        </button>
+      </div>
+
+      <ng-container *ngIf="selectedFabric">
+
+        <div *ngIf="canvas && canvas.getObjects()?.length && !canvas.backgroundImage"
+             class="max-w-sm mx-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-4 mt-4">
+          <div class="font-semibold mb-3">Color Action:</div>
+
+          <form [formGroup]="colorActionForm" type="form" (ngSubmit)="colorActionFormSubmitted()">
+
+            <div class="flex items-center space-x-2 rtl:space-x-reverse mb-3">
+              <input
+                formControlName="add"
+                id="custom-checkbox"
+                type="checkbox"
+                class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
+              />
+              <label for="custom-checkbox" class="text-sm font-medium">
+                Add Selected Element To color Action
+              </label>
+            </div>
+
+
+            <div class="flex flex-col">
+              <label>Color:</label>
+              <input
+                type="color"
+                placeholder="Color"
+                class="w-80 p-3 text-gray-700 placeholder-gray-400 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                formControlName="color"
+                [ngStyle]="{'background-color': colorActionForm.getRawValue().color || ''}"
+              />
+            </div>
+
+            <div class="flex flex-col mt-2">
+              <label>Time(second):</label>
+              <input
+                type="number" [min]="1"
+                placeholder="Time"
+                class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                formControlName="time"
+              />
+            </div>
+
+            <button type="submit"
+                    class="w-full mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+              Save
+            </button>
+
+          </form>
+        </div>
+
+        <div class="max-w-sm mx-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-4 mt-4">
+          <button (click)="deleteElm()"
+                  class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 w-full">
+            Delete Element
+          </button>
+        </div>
+
+        <div
+          class="max-w-sm mx-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-4 mt-4">
+          <form [formGroup]="selectedFabricForm" type="form" (ngSubmit)="selectedFabricFormSubmit()">
+
+            <div class="flex flex-col">
+              <label>Fill Color:</label>
+              <input
+                type="color"
+                placeholder="Svg Fill"
+                class="w-80 p-3 text-gray-700 placeholder-gray-400 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                formControlName="fill"
+                [ngStyle]="{'background-color': selectedFabricForm.getRawValue().fill || ''}"
+              />
+            </div>
+
+            <div class="flex flex-col mt-2">
+              <label>Stroke Color:</label>
+              <input
+                type="color"
+                placeholder="Svg Fill"
+                class="w-80 p-3 text-gray-700 placeholder-gray-400 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                formControlName="stroke"
+                [ngStyle]="{'background-color': selectedFabricForm.getRawValue().stroke || ''}"
+              />
+            </div>
+
+            <div class="flex flex-col mt-2">
+              <label>Stroke Width:</label>
+              <input
+                type="number" [min]="1"
+                placeholder="Stroke Width ..."
+                class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                formControlName="strokeWidth"
+              />
+            </div>
+
+            <div class="flex flex-col mt-2">
+              <label for="filter">Filter:</label>
+              <select id="filter" formControlName="filter"
+                      class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <option value="blur(5px)">Blur</option>
+                <option value="drop-shadow(5px 5px 5px gray)">Shadow</option>
+                <option value="grayscale(100%)">Grayscale</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="type" class="block text-sm font-medium text-gray-700">Type:</label>
+              <select
+                id="type"
+                formControlName="type"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              >
+                <option *ngFor="let type of fabricObjectTypes" [value]="type">
+                  {{ type | titlecase }}
+                </option>
+              </select>
+            </div>
+
+            <ng-container *ngIf="selectedFabric.isType(FabricObjectType.Rect)">
+
+              <div class="flex flex-col mt-2">
+                <label>Width:</label>
+                <input
+                  type="number" [min]="1"
+                  placeholder="Width ..."
+                  class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                  formControlName="width"
+                />
+              </div>
+
+              <div class="flex flex-col mt-2">
+                <label>Height:</label>
+                <input
+                  type="number" [min]="1"
+                  placeholder="Height ..."
+                  class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                  formControlName="height"
+                />
+              </div>
+
+            </ng-container>
+
+            <ng-container *ngIf="selectedFabric.isType(FabricObjectType.Circle)">
+
+              <div class="flex flex-col mt-2">
+                <label>Radius:</label>
+                <input
+                  type="number" [min]="1"
+                  placeholder="Width ..."
+                  class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                  formControlName="radius"
+                />
+              </div>
+
+            </ng-container>
+
+            <ng-container *ngIf="selectedFabric.isType(FabricObjectType.Text)">
+
+              <div class="flex flex-col mt-2">
+                <label>Label:</label>
+                <input
+                  type="text"
+                  placeholder="Type label here ..."
+                  class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                  formControlName="text"
+                />
+              </div>
+
+              <div class="flex flex-col mt-2">
+                <label>Font Size:</label>
+                <input
+                  type="number" [min]="1"
+                  placeholder="Select label size ..."
+                  class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+                  formControlName="fontSize"
+                />
+              </div>
+
+            </ng-container>
+
+            <button type="submit"
+                    class="w-full mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+              Save
+            </button>
+
+          </form>
+        </div>
+
+        <div class="max-w-sm mx-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-4 mt-4">
+          <button (click)="showChartModal = true"
+                  class="bg-indigo-400 text-white px-4 py-2 rounded-md hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full">
+            Show Chart
+          </button>
+        </div>
+
+      </ng-container>
+
+    </ng-container>
+
+  </div>
+
+  <div class="col-span-8 h-screen flex justify-center align-items-center" #myCanvasContainer>
+    <canvas id="myCanvas" #myCanvas></canvas>
+  </div>
+
+</div>
+
+<div id="customMenu" (click)="closeContextMenu()"
+     class="hidden absolute bg-white border border-gray-300 shadow-lg rounded-lg p-4 space-y-2 flex-col">
+
+  <span class="text-sm text-gray-700 hover:bg-gray-100 px-4 py-2 cursor-pointer"
+        (click)="showModalAddLabel = true">
+    Add Label
+  </span>
+
+  <!--  <hr class="border-t-2 border-gray-300 my-2 w-full">-->
+
+  <!--  <span class="text-sm text-gray-700 hover:bg-gray-100 px-4 py-2 cursor-pointer"-->
+  <!--        (click)="deleteElm()">-->
+  <!--    Delete Element-->
+  <!--  </span>-->
+
+</div>
+
+<div *ngIf="showLoading" class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
+  <div class="flex items-center space-x-2">
+    <div class="w-8 h-8 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+    <span class="text-white text-xl">Loading ... </span>
+  </div>
+</div>
+
+<div *ngIf="showModalAddLabel" class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
+  <div class="flex items-center space-x-2">
+    <div class="max-w-sm mx-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-4">
+      <form [formGroup]="svgLabelForm" type="form" (ngSubmit)="setLabel()">
+
+        <div class="flex items-center justify-center">
+          <input
+            type="text"
+            placeholder="Type label here ..."
+            class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+            formControlName="label"
+          />
+        </div>
+
+        <div class="flex items-center justify-center mt-4">
+          <input
+            type="color"
+            placeholder="Select label color ..."
+            class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+            formControlName="color"
+            [ngStyle]="{'background-color': selectedFabricForm.getRawValue().color || ''}"
+          />
+        </div>
+
+        <div class="flex items-center justify-center mt-4">
+          <input
+            type="number" [min]="1"
+            placeholder="Select label size ..."
+            class="w-80 px-3 py-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 ease-in-out"
+            formControlName="size"
+          />
+        </div>
+
+        <button type="submit"
+                class="w-full mt-3 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          Save
+        </button>
+
+        <button (click)="showModalAddLabel = false"
+                class="w-full mt-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+          Close
+        </button>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showChartModal" class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
+  <div class="flex items-center space-x-2">
+    <div class="max-w-sm mx-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-4">
+
+      <app-pie-chart/>
+
+      <button (click)="showChartModal = false"
+              class="w-full mt-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        Close
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<div *ngIf="showPreviewModal" class="fixed inset-0 flex items-center justify-center bg-gray-700 bg-opacity-50 z-50">
+  <div class="flex items-center space-x-2">
+    <div
+      class="mx-auto bg-white overflow-hidden p-4 w-screen h-screen flex justify-center items-center">
+
+      <app-preview [canvas]="canvas" [colorActionSelectedFabricObjs]="colorActionSelectedFabricObjs" [colorActionForm]="colorActionForm.value"/>
+
+      <button (click)="showPreviewModal = false"
+              class="flex items-center justify-center w-10 h-10 bg-red-500 text-white rounded-full hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 fixed top-0 start-0 m-5">
+        ✕
+      </button>
+
+    </div>
+  </div>
+</div>
